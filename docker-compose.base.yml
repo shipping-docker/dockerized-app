@@ -1,0 +1,32 @@
+version: '2'
+services:
+  app:
+    build:
+      context: ./docker/app
+      dockerfile: Dockerfile
+    image: shippingdocker.com/app
+    volumes:
+     - .:/var/www/html
+    networks:
+     - sdnet
+  node:
+    build:
+      context: ./docker/node
+      dockerfile: Dockerfile
+    image: shippingdocker.com/node
+    volumes:
+     - .:/var/www/html
+    networks:
+     - sdnet
+  mysql:
+    image: mysql:5.7
+    volumes:
+     - mysqldata:/var/lib/mysql
+    networks:
+     - sdnet
+  redis:
+    image: redis:alpine
+    volumes:
+     - redisdata:/data
+    networks:
+     - sdnet
