@@ -7,7 +7,8 @@ if [ ! "production" == "$APP_ENV" ] && [ ! "prod" == "$APP_ENV" ]; then
     STEP="setting XDEBUG in container"
 
 	touch /var/log/xdebug.log
-    ln -sf /dev/stdout /var/log/xdebug.log
+	chmod 777 /var/log/xdebug.log
+#    ln -sf /dev/stdout /var/log/xdebug.log
 
     ## FPM
     ln -sf /etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/fpm/conf.d/20-xdebug.ini
