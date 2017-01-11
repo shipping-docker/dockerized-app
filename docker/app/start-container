@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
+trap '[ "$?" -eq 0 ] || read -p "Looks like something went wrong in step ´$STEP´... Press any key to continue..."' EXIT
+
 if [ ! "production" == "$APP_ENV" ] && [ ! "prod" == "$APP_ENV" ]; then
     # Enable xdebug
+    STEP="setting XDEBUG in container"
+
+	touch /var/log/xdebug.log
+    ln -sf /dev/stdout /var/log/xdebug.log
 
     ## FPM
     ln -sf /etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/fpm/conf.d/20-xdebug.ini
@@ -10,6 +16,7 @@ if [ ! "production" == "$APP_ENV" ] && [ ! "prod" == "$APP_ENV" ]; then
     ln -sf /etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/cli/conf.d/20-xdebug.ini
 else
     # Disable xdebug
+    STEP="disabling XDEBUG"
 
     ## FPM
     if [ -e /etc/php/7.0/fpm/conf.d/20-xdebug.ini ]; then
