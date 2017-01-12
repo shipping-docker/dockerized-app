@@ -5,8 +5,10 @@ trap '[ "$?" -eq 0 ] || read -p "Looks like something went wrong in step ´$STEP
 # Mac: Get host address
 STEP="Setting XDEBUG_HOST to hostmachine IP"
 #export XDEBUG_HOST=$(ip route | awk '/docker0/ { print $9 }')
-export XDEBUG_HOST=${XDEBUG_HOST:-(ip route | awk '/eth1/ { print $9 }')}
+#export XDEBUG_HOST=${XDEBUG_HOST:-(ip route | awk '/eth1/ { print $9 }')}
 #export XDEBUG_HOST=$(ip -o -4 addr list ${MY_NETWORK_INTERFACE:-eth0} | awk '{print $4}' | cut -d/ -f1)
+[[ $XDEBUG_HOST ]] || XDEBUG_HOST=$(ip route | awk '/eth1/ { print $9 }')
+export XDEBUG_HOST
 
 #export XDEBUG_HOST=192.168.99.1
 
