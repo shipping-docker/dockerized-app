@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
+trap '[ "$?" -eq 0 ] || read -p "Looks like something went wrong in step ´$STEP´... Press any key to continue..."' EXIT
 
 
 # Mac: Get host address
-export XDEBUG_HOST=$(ipconfig getifaddr en1)
+STEP="Setting XDEBUG_HOST to hostmachine IP"
+[[ $XDEBUG_HOST ]] || XDEBUG_HOST=$(ip -o -4 addr list docker0 | awk '{print $4}' | cut -d/ -f1)
+export XDEBUG_HOST
+
+echo "setup host address to: $XDEBUG_HOST"
 
 # Linux: Get host address
 # Via: http://stackoverflow.com/questions/13322485/how-to-i-get-the-primary-ip-address-of-the-local-machine-on-linux-and-os-x
 #export XDEBUG_HOST=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n1)
 
 # Other env variables
+STEP="Setting ENV variables"
 export APP_ENV=${APP_ENV:-local}
 export APP_PORT=${APP_PORT:-80}
 export DB_PORT=${DB_PORT:-3306}
@@ -32,6 +38,7 @@ COMPOSE="docker-compose -f docker-compose.$COMPOSE_FILE.yml"
 
 if [ $# -gt 0 ];then
     if [ "$1" == "art" ]; then
+		STEP="Running artisan command"
         shift 1
         $COMPOSE run --rm $TTY \
             -w /var/www/html \
@@ -40,6 +47,7 @@ if [ $# -gt 0 ];then
     # If "composer" is used, pass-thru to "composer"
     # inside a new container
     elif [ "$1" == "composer" ]; then
+		STEP="Running composer command"
         shift 1
         $COMPOSE run --rm $TTY \
             -w /var/www/html \
@@ -49,6 +57,7 @@ if [ $# -gt 0 ];then
     # If "test" is used, run unit tests,
     # pass-thru any extra arguments to php-unit
     elif [ "$1" == "test" ]; then
+		STEP="Running phpunit command in new app container"
         shift 1
         $COMPOSE run --rm $TTY \
             -w /var/www/html \
@@ -56,6 +65,7 @@ if [ $# -gt 0 ];then
             ./vendor/bin/phpunit "$@"
 
     elif [ "$1" == "t" ]; then
+		STEP="Running phpunit command in existing app container"
 		shift 1
 		$COMPOSE exec \
 			app \
@@ -64,6 +74,7 @@ if [ $# -gt 0 ];then
     # If "npm" is used, run npm
     # from our node container
     elif [ "$1" == "npm" ]; then
+		STEP="Running npm command"
         shift 1
         $COMPOSE run --rm $TTY \
             -w /var/www/html \
@@ -73,12 +84,14 @@ if [ $# -gt 0 ];then
     # If "gulp" is used, run gulp
     # from our node container
     elif [ "$1" == "gulp" ]; then
+		STEP="Running gulp command"
         shift 1
         $COMPOSE run --rm $TTY \
             -w /var/www/html \
             node \
             ./node_modules/.bin/gulp "$@"
     else
+		STEP="Running any override docker command"
         $COMPOSE "$@"
     fi
 else
